@@ -1,0 +1,36 @@
+project_name: inaccel-reef
+
+before:
+  hooks:
+  - go mod download
+builds:
+- binary: reef
+  env:
+  - CGO_ENABLED=0
+  goarch:
+  - amd64
+  goos:
+  - linux
+  main: cmd/main.go
+
+archives:
+- files:
+  - none*
+  id: archive
+  name_template: "{{ .Os }}-{{ .Arch }}"
+checksum:
+  name_template: checksums.txt
+dockers:
+- build_flag_templates:
+  - "--label=org.opencontainers.image.authors=InAccel <info@inaccel.com>"
+  - "--label=org.opencontainers.image.created={{ .Date }}"
+  - "--label=org.opencontainers.image.description=InAccel is a product for you to build, ship and run hardware accelerated applications"
+  - "--label=org.opencontainers.image.liscenses=Apache-2.0"
+  - "--label=org.opencontainers.image.revision={{ .FullCommit }}"
+  - "--label=org.opencontainers.image.title={{ .ProjectName }}"
+  - "--label=org.opencontainers.image.url=https://inaccel.com"
+  - "--label=org.opencontainers.image.vendor=InAccel"
+  - "--label=org.opencontainers.image.version={{ .RawVersion }}"
+  image_templates:
+  - inaccel/reef:latest
+  - inaccel/reef:{{ .RawVersion }}
