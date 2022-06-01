@@ -3,7 +3,7 @@ package jsonpatch
 import (
 	"encoding/json"
 
-	"github.com/mattbaird/jsonpatch"
+	"github.com/wI2L/jsondiff"
 )
 
 func Diff(before interface{}, after interface{}) ([]byte, error) {
@@ -15,7 +15,7 @@ func Diff(before interface{}, after interface{}) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	operations, err := jsonpatch.CreatePatch(beforeRaw, afterRaw)
+	operations, err := jsondiff.CompareJSON(beforeRaw, afterRaw)
 	if err != nil {
 		return nil, err
 	}
