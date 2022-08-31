@@ -6,7 +6,6 @@ import (
 	"crypto/x509"
 	"crypto/x509/pkix"
 	"encoding/pem"
-	"io/ioutil"
 	"math/big"
 	"os"
 	"path/filepath"
@@ -132,7 +131,7 @@ var initCommand = &cli.Command{
 		if err := os.MkdirAll(filepath.Dir(context.String("key")), os.ModePerm); err != nil {
 			return err
 		}
-		if err := ioutil.WriteFile(context.String("key"), pem.EncodeToMemory(&pem.Block{
+		if err := os.WriteFile(context.String("key"), pem.EncodeToMemory(&pem.Block{
 			Type:  "RSA PRIVATE KEY",
 			Bytes: x509.MarshalPKCS1PrivateKey(serverPriv),
 		}), os.ModePerm); err != nil {
@@ -142,7 +141,7 @@ var initCommand = &cli.Command{
 		if err := os.MkdirAll(filepath.Dir(context.String("cert")), os.ModePerm); err != nil {
 			return err
 		}
-		if err := ioutil.WriteFile(context.String("cert"), pem.EncodeToMemory(&pem.Block{
+		if err := os.WriteFile(context.String("cert"), pem.EncodeToMemory(&pem.Block{
 			Type:  "CERTIFICATE",
 			Bytes: serverBytes,
 		}), os.ModePerm); err != nil {
