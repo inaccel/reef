@@ -12,7 +12,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/inaccel/reef/internal"
 	"github.com/urfave/cli/v2"
 	admissionregistrationv1 "k8s.io/api/admissionregistration/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -74,12 +73,25 @@ var initCommand = &cli.Command{
 			return err
 		}
 
-		mutatingWebhookConfiguration.Webhooks[0].ClientConfig.CABundle = pem.EncodeToMemory(&pem.Block{
-			Type:  "CERTIFICATE",
-			Bytes: caBytes,
-		})
+		for i := range mutatingWebhookConfiguration.Webhooks {
+			if mutatingWebhookConfiguration.Webhooks[i].Name == "reef.inaccel.com" {
+				mutatingWebhookConfiguration.Webhooks[i].ClientConfig.CABundle = pem.EncodeToMemory(&pem.Block{
+					Type:  "CERTIFICATE",
+					Bytes: caBytes,
+				})
 
-		mutatingWebhookConfiguration.Webhooks[0].Rules = internal.Rules
+				mutatingWebhookConfiguration.Webhooks[i].Rules = []admissionregistrationv1.RuleWithOperations{
+					{
+						Operations: []admissionregistrationv1.OperationType{admissionregistrationv1.Create},
+						Rule: admissionregistrationv1.Rule{
+							APIGroups:   []string{""},
+							APIVersions: []string{"v1"},
+							Resources:   []string{"pods"},
+						},
+					},
+				}
+			}
+		}
 
 		if err := api.Update(context.Context, mutatingWebhookConfiguration); err != nil {
 			return err

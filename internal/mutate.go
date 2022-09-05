@@ -1,11 +1,13 @@
 package internal
 
 import (
+	"context"
 	"fmt"
 	"regexp"
 	"strings"
 
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/runtime"
 )
 
 func IsInitContainer(initContainer corev1.Container, image string, index int, command string) bool {
@@ -48,9 +50,13 @@ func VolumeMount() corev1.VolumeMount {
 	}
 }
 
-func Mutate(me corev1.Pod) (corev1.Pod, error) {
-	var pod corev1.Pod
-	me.DeepCopyInto(&pod)
+type PodDefaulter struct{}
+
+func (PodDefaulter) Default(ctx context.Context, obj runtime.Object) error {
+	pod, ok := obj.(*corev1.Pod)
+	if !ok {
+		return fmt.Errorf("pod defaulter did not understand object: %T", obj)
+	}
 
 	for image, commands := range pod.Annotations {
 		if strings.HasPrefix(image, "inaccel/") {
@@ -108,5 +114,5 @@ func Mutate(me corev1.Pod) (corev1.Pod, error) {
 		pod.Spec.Volumes = append(pod.Spec.Volumes, Volume())
 	}
 
-	return pod, nil
+	return nil
 }

@@ -1,14 +1,18 @@
 package main
 
 import (
+	"crypto/tls"
 	"io"
 	"log"
 	"net/http"
 	"os"
 
+	"github.com/bombsimon/logrusr/v3"
 	"github.com/inaccel/reef/internal"
 	"github.com/sirupsen/logrus"
 	"github.com/urfave/cli/v2"
+	"sigs.k8s.io/controller-runtime/pkg/certwatcher"
+	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
 )
 
 var version string
@@ -47,7 +51,32 @@ func main() {
 			return nil
 		},
 		Action: func(context *cli.Context) error {
-			return http.ListenAndServeTLS("", context.String("cert"), context.String("key"), internal.Handle("/"))
+			handler, err := admission.StandaloneWebhook(internal.Webhook, admission.StandaloneOptions{
+				Logger: logrusr.New(logrus.StandardLogger()),
+			})
+			if err != nil {
+				return err
+			}
+
+			http.Handle("/", handler)
+
+			watcher, err := certwatcher.New(context.String("cert"), context.String("key"))
+			if err != nil {
+				return err
+			}
+
+			go func() {
+				if err := watcher.Start(context.Context); err != nil {
+					logrus.Error(err)
+				}
+			}()
+
+			server := &http.Server{
+				TLSConfig: &tls.Config{
+					GetCertificate: watcher.GetCertificate,
+				},
+			}
+			return server.ListenAndServeTLS("", "")
 		},
 		Commands: []*cli.Command{
 			initCommand,
