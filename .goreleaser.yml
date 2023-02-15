@@ -35,3 +35,8 @@ dockers:
   image_templates:
   - inaccel/reef:latest
   - inaccel/reef:{{ .RawVersion }}
+release:
+  footer: |
+    ## Docker images
+
+    - `docker pull inaccel/reef:{{ .RawVersion }}`
