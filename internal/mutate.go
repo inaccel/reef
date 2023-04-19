@@ -6,21 +6,33 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/iancoleman/strcase"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 )
 
-func IsInitContainer(initContainer corev1.Container, image string, index int, command string) bool {
-	return initContainer.Name == fmt.Sprintf("%s-%d", regexp.MustCompile("[^0-9A-Za-z]+").ReplaceAllString(image, "-"), index)
+func IsContainer(container corev1.Container, image string, index int, command string) bool {
+	return container.Name == fmt.Sprintf("%s-%d", regexp.MustCompile("[^0-9A-Za-z]+").ReplaceAllString(image, "-"), index)
 }
 
-func InitContainer(image string, index int, command string) corev1.Container {
+func Container(image string, index int, command string) corev1.Container {
 	return corev1.Container{
 		Name:  fmt.Sprintf("%s-%d", regexp.MustCompile("[^0-9A-Za-z]+").ReplaceAllString(image, "-"), index),
 		Image: image,
 		Args: strings.FieldsFunc(command, func(c rune) bool {
 			return c == ' '
 		}),
+	}
+}
+
+func IsEnvVar(envVar corev1.EnvVar, name string) bool {
+	return envVar.Name == strings.ReplaceAll(strcase.ToScreamingSnake(name), "/", "_")
+}
+
+func EnvVar(name, value string) corev1.EnvVar {
+	return corev1.EnvVar{
+		Name:  strings.ReplaceAll(strcase.ToScreamingSnake(name), "/", "_"),
+		Value: value,
 	}
 }
 
@@ -63,15 +75,45 @@ func (PodDefaulter) Default(ctx context.Context, obj runtime.Object) error {
 			for index, command := range strings.FieldsFunc(commands, func(c rune) bool {
 				return c == '\n'
 			}) {
-				initContainerExists := false
+				containerExists := false
 				for i := range pod.Spec.InitContainers {
-					if IsInitContainer(pod.Spec.InitContainers[i], image, index, command) {
-						initContainerExists = true
-						pod.Spec.InitContainers[i] = InitContainer(image, index, command)
+					if IsContainer(pod.Spec.InitContainers[i], image, index, command) {
+						containerExists = true
+						pod.Spec.InitContainers[i] = Container(image, index, command)
 					}
 				}
-				if !initContainerExists {
-					pod.Spec.InitContainers = append(pod.Spec.InitContainers, InitContainer(image, index, command))
+				if !containerExists {
+					pod.Spec.InitContainers = append(pod.Spec.InitContainers, Container(image, index, command))
+				}
+			}
+		}
+	}
+
+	for name, value := range pod.Labels {
+		if strings.HasPrefix(name, "inaccel/") {
+			for i := range pod.Spec.Containers {
+				envVarExists := false
+				for j := range pod.Spec.Containers[i].Env {
+					if IsEnvVar(pod.Spec.Containers[i].Env[j], name) {
+						envVarExists = true
+						pod.Spec.Containers[i].Env[j] = EnvVar(name, value)
+					}
+				}
+				if !envVarExists {
+					pod.Spec.Containers[i].Env = append(pod.Spec.Containers[i].Env, EnvVar(name, value))
+				}
+			}
+
+			for i := range pod.Spec.InitContainers {
+				envVarExists := false
+				for j := range pod.Spec.InitContainers[i].Env {
+					if IsEnvVar(pod.Spec.InitContainers[i].Env[j], name) {
+						envVarExists = true
+						pod.Spec.InitContainers[i].Env[j] = EnvVar(name, value)
+					}
+				}
+				if !envVarExists {
+					pod.Spec.InitContainers[i].Env = append(pod.Spec.InitContainers[i].Env, EnvVar(name, value))
 				}
 			}
 		}

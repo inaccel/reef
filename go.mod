@@ -5,6 +5,7 @@ go 1.19
 require (
 	github.com/bombsimon/logrusr/v3 v3.1.0
 	github.com/cert-manager/cert-manager v1.11.0
+	github.com/iancoleman/strcase v0.2.0
 	github.com/sirupsen/logrus v1.9.0
 	github.com/urfave/cli/v2 v2.25.0
 	github.com/wI2L/jsondiff v0.3.0

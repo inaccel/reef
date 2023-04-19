@@ -6,7 +6,7 @@ import (
 	"github.com/wI2L/jsondiff"
 )
 
-func Diff(before interface{}, after interface{}) ([]byte, error) {
+func Diff(before, after interface{}) ([]byte, error) {
 	beforeRaw, err := json.Marshal(before)
 	if err != nil {
 		return nil, err
