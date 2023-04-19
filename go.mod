@@ -4,21 +4,21 @@ go 1.19
 
 require (
 	github.com/bombsimon/logrusr/v3 v3.1.0
-	github.com/cert-manager/cert-manager v1.11.0
+	github.com/cert-manager/cert-manager v1.11.1
 	github.com/iancoleman/strcase v0.2.0
 	github.com/sirupsen/logrus v1.9.0
-	github.com/urfave/cli/v2 v2.25.0
+	github.com/urfave/cli/v2 v2.25.1
 	github.com/wI2L/jsondiff v0.3.0
-	k8s.io/api v0.26.2
-	k8s.io/apimachinery v0.26.2
-	sigs.k8s.io/controller-runtime v0.14.5
+	k8s.io/api v0.26.4
+	k8s.io/apimachinery v0.26.4
+	sigs.k8s.io/controller-runtime v0.14.6
 )
 
 require (
 	github.com/Azure/go-ntlmssp v0.0.0-20220621081337-cb9428e4ac1e // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/blang/semver/v4 v4.0.0 // indirect
-	github.com/cespare/xxhash/v2 v2.1.2 // indirect
+	github.com/cespare/xxhash/v2 v2.2.0 // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.2 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/emicklei/go-restful/v3 v3.9.0 // indirect
