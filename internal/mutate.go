@@ -64,6 +64,10 @@ func VolumeMount() corev1.VolumeMount {
 
 type PodDefaulter struct{}
 
+func NewPodDefaulter() *PodDefaulter {
+	return &PodDefaulter{}
+}
+
 func (PodDefaulter) Default(ctx context.Context, obj runtime.Object) error {
 	pod, ok := obj.(*corev1.Pod)
 	if !ok {
